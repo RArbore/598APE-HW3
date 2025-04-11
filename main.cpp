@@ -18,7 +18,7 @@ unsigned long long randomU64() {
   return seed;
 }
 
-typedef double NUMBER_TYPE;
+typedef float NUMBER_TYPE;
 
 NUMBER_TYPE randomNum()
 {
