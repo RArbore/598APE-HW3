@@ -18,19 +18,21 @@ unsigned long long randomU64() {
   return seed;
 }
 
-double randomDouble()
+typedef float NUMBER_TYPE;
+
+NUMBER_TYPE randomNum()
 {
    unsigned long long next = randomU64();
    next >>= (64 - 26);
    unsigned long long next2 = randomU64();
    next2 >>= (64 - 26);
-   return ((next << 27) + next2) / (double)(1LL << 53);
+   return ((next << 27) + next2) / (NUMBER_TYPE)(1LL << 53);
 }
 
 int nplanets;
 int timesteps;
-double dt;
-double G;
+NUMBER_TYPE dt;
+NUMBER_TYPE G;
 
 int main(int argc, const char** argv){
    if (argc < 2) {
@@ -42,21 +44,21 @@ int main(int argc, const char** argv){
    dt = 0.001;
    G = 6.6743;
 
-   double* mass = (double*)malloc(sizeof(double) * nplanets);
-   double* x = (double*)malloc(sizeof(double) * nplanets);
-   double* y = (double*)malloc(sizeof(double) * nplanets);
-   double* vx = (double*)malloc(sizeof(double) * nplanets);
-   double* vy = (double*)malloc(sizeof(double) * nplanets);
-   double* next_x = (double*)malloc(sizeof(double) * nplanets);
-   double* next_y = (double*)malloc(sizeof(double) * nplanets);
+   NUMBER_TYPE* mass = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* x = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* y = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* vx = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* vy = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* next_x = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
+   NUMBER_TYPE* next_y = (NUMBER_TYPE*)malloc(sizeof(NUMBER_TYPE) * nplanets);
    for (int i=0; i<nplanets; i++) {
-      mass[i] = randomDouble() * 10 + 0.2;
-      x[i] = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
-      y[i] = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
+      mass[i] = randomNum() * 10 + 0.2;
+      x[i] = ( randomNum() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
+      y[i] = ( randomNum() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
       next_x[i] = x[i];
       next_y[i] = y[i];
-      vx[i] = randomDouble() * 5 - 2.5;
-      vy[i] = randomDouble() * 5 - 2.5;
+      vx[i] = randomNum() * 5 - 2.5;
+      vy[i] = randomNum() * 5 - 2.5;
    }
 
    struct timeval start, end;
@@ -64,11 +66,11 @@ int main(int argc, const char** argv){
    for (int i=0; i<timesteps; i++) {
       for (int i=0; i<nplanets; i++) {
          for (int j=0; j<nplanets; j++) {
-            double dx = x[j] - x[i];
-            double dy = y[j] - y[i];
-            double distSqr = dx*dx + dy*dy + 0.0001;
-            double invDist = mass[i] * mass[j] / sqrt(distSqr);
-            double invDist3 = invDist * invDist * invDist;
+            NUMBER_TYPE dx = x[j] - x[i];
+            NUMBER_TYPE dy = y[j] - y[i];
+            NUMBER_TYPE distSqr = dx*dx + dy*dy + 0.0001;
+            NUMBER_TYPE invDist = mass[i] * mass[j] / sqrt(distSqr);
+            NUMBER_TYPE invDist3 = invDist * invDist * invDist;
             vx[i] += dt * dx * invDist3;
             vy[i] += dt * dy * invDist3;
          }
@@ -76,8 +78,8 @@ int main(int argc, const char** argv){
          next_y[i] += dt * vy[i];
       }
 
-      memcpy(x, next_x, sizeof(double) * nplanets);
-      memcpy(y, next_y, sizeof(double) * nplanets);
+      memcpy(x, next_x, sizeof(NUMBER_TYPE) * nplanets);
+      memcpy(y, next_y, sizeof(NUMBER_TYPE) * nplanets);
       // printf("x=%f y=%f vx=%f vy=%f\n", planets[nplanets-1].x, planets[nplanets-1].y, planets[nplanets-1].vx, planets[nplanets-1].vy);
    }
    gettimeofday(&end, NULL);
