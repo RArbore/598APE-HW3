@@ -2,6 +2,7 @@
 #include<string.h>
 #include<stdlib.h>
 #include<math.h>
+#include<omp.h>
 
 #include <sys/time.h>
 
@@ -18,7 +19,7 @@ unsigned long long randomU64() {
   return seed;
 }
 
-typedef float NUMBER_TYPE;
+typedef double NUMBER_TYPE;
 
 NUMBER_TYPE randomNum()
 {
@@ -64,6 +65,7 @@ int main(int argc, const char** argv){
    struct timeval start, end;
    gettimeofday(&start, NULL);
    for (int i=0; i<timesteps; i++) {
+      #pragma omp parallel for
       for (int i=0; i<nplanets; i++) {
          for (int j=0; j<nplanets; j++) {
             NUMBER_TYPE dx = x[j] - x[i];
