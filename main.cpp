@@ -76,12 +76,12 @@ int main(int argc, const char** argv){
             vx[i] += dt * dx * invDist3;
             vy[i] += dt * dy * invDist3;
          }
-         next_x[i] += dt * vx[i];
-         next_y[i] += dt * vy[i];
+         next_x[i] = dt * vx[i] + x[i];
+         next_y[i] = dt * vy[i] + y[i];
       }
 
-      memcpy(x, next_x, sizeof(NUMBER_TYPE) * nplanets);
-      memcpy(y, next_y, sizeof(NUMBER_TYPE) * nplanets);
+      std::swap(x, next_x);
+      std::swap(y, next_y);
       // printf("x=%f y=%f vx=%f vy=%f\n", planets[nplanets-1].x, planets[nplanets-1].y, planets[nplanets-1].vx, planets[nplanets-1].vy);
    }
    gettimeofday(&end, NULL);
