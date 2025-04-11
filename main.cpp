@@ -2,7 +2,6 @@
 #include<string.h>
 #include<stdlib.h>
 #include<math.h>
-#include<omp.h>
 
 #include <sys/time.h>
 
@@ -67,6 +66,7 @@ int main(int argc, const char** argv){
    for (int i=0; i<timesteps; i++) {
       #pragma omp parallel for
       for (int i=0; i<nplanets; i++) {
+         #pragma omp simd
          for (int j=0; j<nplanets; j++) {
             NUMBER_TYPE dx = x[j] - x[i];
             NUMBER_TYPE dy = y[j] - y[i];
