@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<string.h>
 #include<stdlib.h>
 #include<math.h>
 
@@ -7,14 +8,6 @@
 float tdiff(struct timeval *start, struct timeval *end) {
   return (end->tv_sec-start->tv_sec) + 1e-6*(end->tv_usec-start->tv_usec);
 }
-
-struct Planet {
-   double mass;
-   double x;
-   double y;
-   double vx;
-   double vy;
-};
 
 unsigned long long seed = 100;
 
@@ -39,30 +32,6 @@ int timesteps;
 double dt;
 double G;
 
-void next(Planet* planets, Planet* nextplanets) {
-   for (int i=0; i<nplanets; i++) {
-      nextplanets[i].vx = planets[i].vx;
-      nextplanets[i].vy = planets[i].vy;
-      nextplanets[i].mass = planets[i].mass;
-      nextplanets[i].x = planets[i].x;
-      nextplanets[i].y = planets[i].y;
-   }
-
-   for (int i=0; i<nplanets; i++) {
-      for (int j=0; j<nplanets; j++) {
-         double dx = planets[j].x - planets[i].x;
-         double dy = planets[j].y - planets[i].y;
-         double distSqr = dx*dx + dy*dy + 0.0001;
-         double invDist = planets[i].mass * planets[j].mass / sqrt(distSqr);
-         double invDist3 = invDist * invDist * invDist;
-         nextplanets[i].vx += dt * dx * invDist3;
-         nextplanets[i].vy += dt * dy * invDist3;
-      }
-      nextplanets[i].x += dt * nextplanets[i].vx;
-      nextplanets[i].y += dt * nextplanets[i].vy;
-   }
-}
-
 int main(int argc, const char** argv){
    if (argc < 2) {
       printf("Usage: %s <nplanets> <timesteps>\n", argv[0]);
@@ -73,29 +42,53 @@ int main(int argc, const char** argv){
    dt = 0.001;
    G = 6.6743;
 
-   Planet* planets = (Planet*)malloc(sizeof(Planet) * nplanets);
+   double* mass = (double*)malloc(sizeof(double) * nplanets);
+   double* x = (double*)malloc(sizeof(double) * nplanets);
+   double* y = (double*)malloc(sizeof(double) * nplanets);
+   double* vx = (double*)malloc(sizeof(double) * nplanets);
+   double* vy = (double*)malloc(sizeof(double) * nplanets);
+   double* next_x = (double*)malloc(sizeof(double) * nplanets);
+   double* next_y = (double*)malloc(sizeof(double) * nplanets);
    for (int i=0; i<nplanets; i++) {
-      planets[i].mass = randomDouble() * 10 + 0.2;
-      planets[i].x = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
-      planets[i].y = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
-      planets[i].vx = randomDouble() * 5 - 2.5;
-      planets[i].vy = randomDouble() * 5 - 2.5;
+      mass[i] = randomDouble() * 10 + 0.2;
+      x[i] = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
+      y[i] = ( randomDouble() - 0.5 ) * 100 * pow(1 + nplanets, 0.4);
+      next_x[i] = x[i];
+      next_y[i] = y[i];
+      vx[i] = randomDouble() * 5 - 2.5;
+      vy[i] = randomDouble() * 5 - 2.5;
    }
-   Planet* nextplanets = (Planet*)malloc(sizeof(Planet) * nplanets);
 
    struct timeval start, end;
    gettimeofday(&start, NULL);
    for (int i=0; i<timesteps; i++) {
-      next(planets, nextplanets);
-      Planet* tmp = planets;
-      planets = nextplanets;
-      nextplanets = tmp;
+      for (int i=0; i<nplanets; i++) {
+         for (int j=0; j<nplanets; j++) {
+            double dx = x[j] - x[i];
+            double dy = y[j] - y[i];
+            double distSqr = dx*dx + dy*dy + 0.0001;
+            double invDist = mass[i] * mass[j] / sqrt(distSqr);
+            double invDist3 = invDist * invDist * invDist;
+            vx[i] += dt * dx * invDist3;
+            vy[i] += dt * dy * invDist3;
+         }
+         next_x[i] += dt * vx[i];
+         next_y[i] += dt * vy[i];
+      }
+
+      memcpy(x, next_x, sizeof(double) * nplanets);
+      memcpy(y, next_y, sizeof(double) * nplanets);
       // printf("x=%f y=%f vx=%f vy=%f\n", planets[nplanets-1].x, planets[nplanets-1].y, planets[nplanets-1].vx, planets[nplanets-1].vy);
    }
    gettimeofday(&end, NULL);
-   printf("Total time to run simulation %0.6f seconds, final location %f %f\n", tdiff(&start, &end), planets[nplanets-1].x, planets[nplanets-1].y);
-   free(planets);
-   free(nextplanets);
+   printf("Total time to run simulation %0.6f seconds, final location %f %f\n", tdiff(&start, &end), x[nplanets-1], y[nplanets-1]);
+   free(mass);
+   free(x);
+   free(y);
+   free(vx);
+   free(vy);
+   free(next_x);
+   free(next_y);
 
    return 0;   
 }
